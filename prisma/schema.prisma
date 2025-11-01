@@ -24,6 +24,7 @@ model User {
   Image       Image[]
   isVerified  Boolean       @default(false)
   EmailAction EmailAction[]
+  Rating      Rating[]
 }
 
 model Image {
@@ -49,27 +50,52 @@ model Ingredients {
   id                  Int                   @id @default(autoincrement())
   name                String                @unique
   alcoholic           Boolean
-  type                String
-  percantage          Float
+  typeId              Int
+  type                IngredientType        @relation(fields: [typeId], references: [id])
+  percantage          Float?
   imageUrl            String
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
   CocktailIngredients CocktailIngredients[]
 }
 
+model IngredientType {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  Ingredients Ingredients[]
+}
+
 model Cocktails {
-  id           Int      @id @default(autoincrement())
-  name         String   @unique
+  id           Int              @id @default(autoincrement())
+  name         String           @unique
   instructions String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
   imageUrl     String
-  category     String
+  categoryId   Int
+  category     CocktailCategory @relation(fields: [categoryId], references: [id])
   glass        String
-  rating       Float    @default(0)
-  votes        Int      @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   CocktailIngredients CocktailIngredients[]
+  Rating              Rating[]
+}
+
+model CocktailCategory {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  Cocktails Cocktails[]
+}
+
+model Rating {
+  id         Int    @id @default(autoincrement())
+  userEmail  String
+  cocktailId Int
+  rating     Float
+
+  user     User      @relation(fields: [userEmail], references: [email])
+  cocktail Cocktails @relation(fields: [cocktailId], references: [id])
+
+  @@unique([userEmail, cocktailId])
 }
 
 model CocktailIngredients {
@@ -78,6 +104,10 @@ model CocktailIngredients {
 
   cocktail   Cocktails   @relation(fields: [cocktailId], references: [id])
   ingredient Ingredients @relation(fields: [ingredientId], references: [id])
+
+  amount Float
+  unit   String
+  note   String?
 
   @@id([cocktailId, ingredientId])
 }
