@@ -1,26 +1,43 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Request, UnauthorizedException, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-
-import { AuthService } from "./auth.service";
-import { LoginResponseDto } from "./dto/login-response.dto";
-import { LoginDto } from "./dto/login.dto";
-import { RegisterDto } from "./dto/register.dto";
-import { AuthGuard } from "./auth.guard";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+  Request,
+  UnauthorizedException,
+  UseGuards,
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { RegisterResponseDto } from "./dto/register-response.dto";
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
+
 import { EmailService } from "../email/email.service";
 import { UserService } from "../user/user.service";
+import { AuthGuard } from "./auth.guard";
+import { AuthService } from "./auth.service";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { LoginResponseDto } from "./dto/login-response.dto";
+import { LoginDto } from "./dto/login.dto";
+import { RegisterResponseDto } from "./dto/register-response.dto";
+import { RegisterDto } from "./dto/register.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 
 @Controller("auth")
 @ApiTags("auth")
 export class AuthController {
-  
-  constructor(private readonly authService: AuthService,
+  constructor(
+    private readonly authService: AuthService,
     private readonly userService: UserService,
     private readonly jwt: JwtService,
-    private mailservice: EmailService
+    private mailservice: EmailService,
   ) {}
 
   @ApiOperation({
@@ -76,11 +93,11 @@ export class AuthController {
     description: "Get a profile of currently logged in user",
   })
   @UseGuards(AuthGuard)
-  @Get('profile')
+  @Get("profile")
   @ApiBearerAuth("access-token")
   getProfile(@Request() request) {
-    if (request.user === null || request.user === undefined){
-      throw new UnauthorizedException("You need to be logged in for that")
+    if (request.user === null || request.user === undefined) {
+      throw new UnauthorizedException("You need to be logged in for that");
     }
     return request.user;
   }
@@ -92,16 +109,17 @@ export class AuthController {
     status: 200,
     description: "Verify email with token sent to the user email",
   })
-  @Get('verify-email')
-  async verify(@Query('token') token: string) {
-
+  @Get("verify-email")
+  async verify(@Query("token") token: string) {
     try {
       const payload = this.jwt.verify(token);
-      if (payload.purpose !== 'email-verify') {throw new BadRequestException("Invalid token");}
+      if (payload.purpose !== "email-verify") {
+        throw new BadRequestException("Invalid token");
+      }
       await this.authService.markVerified(payload.sub);
-      return { message: 'Email verified successfully' };
+      return { message: "Email verified successfully" };
     } catch {
-      throw new BadRequestException('Invalid or expired token');
+      throw new BadRequestException("Invalid or expired token");
     }
   }
 
@@ -112,17 +130,20 @@ export class AuthController {
     status: 200,
     description: "Reset password with token sent to the user email",
   })
-  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @Post("reset-password")
   async reset(@Body() dto: ResetPasswordDto) {
     try {
       const payload = this.jwt.verify(dto.token);
-      if (payload.purpose !== 'reset-password') {throw new Error();}
+      if (payload.purpose !== "reset-password") {
+        throw new Error();
+      }
 
       await this.authService.changePassword(payload.sub, dto.newPassword);
 
-      return { message: 'Password updated successfully' };
+      return { message: "Password updated successfully" };
     } catch {
-      throw new BadRequestException('Invalid or expired token');
+      throw new BadRequestException("Invalid or expired token");
     }
   }
 
@@ -131,25 +152,27 @@ export class AuthController {
   })
   @ApiResponse({
     status: 200,
-    description: "Send a link to the provided email in order to reset the account password",
+    description:
+      "Send a link to the provided email in order to reset the account password",
   })
-  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @Post("forgot-password")
   async forgot(@Body() body: ForgotPasswordDto) {
     const { email } = body;
     const user = await this.userService.findOne(email);
-    if (!user) {return { message: 'Account with this email does not exist' };}
+    if (!user) {
+      return { message: "link has been sent" };
+    }
 
     const token = this.jwt.sign(
-      { sub: user.email, purpose: 'reset-password' },
-      { expiresIn: '15m' }
+      { sub: user.email, purpose: "reset-password" },
+      { expiresIn: "15m" },
     );
 
     const url = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
-    await this.mailservice.sendPasswordResetMail(user.email,url)
+    await this.mailservice.sendPasswordResetMail(user.email, url);
 
-    return { message: 'If that email exists, a link has been sent' };
+    return { message: "If that email exists, a link has been sent" };
   }
-
-
 }

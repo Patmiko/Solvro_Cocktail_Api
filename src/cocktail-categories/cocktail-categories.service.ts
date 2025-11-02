@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCocktailCategoryDto } from './dto/create-cocktail-category.dto';
-import { UpdateCocktailCategoryDto } from './dto/update-cocktail-category.dto';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, NotFoundException } from "@nestjs/common";
+
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateCocktailCategoryDto } from "./dto/create-cocktail-category.dto";
+import { UpdateCocktailCategoryDto } from "./dto/update-cocktail-category.dto";
 
 @Injectable()
 export class CocktailCategoriesService {
@@ -17,12 +18,27 @@ export class CocktailCategoriesService {
   }
 
   async findOne(name: string) {
-    return await this.prisma.cocktailCategory.findUnique({
+    const result = await this.prisma.cocktailCategory.findUnique({
       where: { name },
     });
+    if (result === null) {
+      throw new NotFoundException("Cocktail Category not found");
+    }
+    return result;
   }
 
-  async update(name: string, updateCocktailCategoryDto: UpdateCocktailCategoryDto) {
+  async update(
+    name: string,
+    updateCocktailCategoryDto: UpdateCocktailCategoryDto,
+  ) {
+    const checkExists = await this.prisma.cocktailCategory.findFirst({
+      where: { name },
+    });
+    if (checkExists === null) {
+      throw new NotFoundException(
+        "Cocktail Category with this id doesn't exist",
+      );
+    }
     return await this.prisma.cocktailCategory.update({
       where: { name },
       data: updateCocktailCategoryDto,
@@ -30,8 +46,15 @@ export class CocktailCategoriesService {
   }
 
   async remove(name: string) {
-    return await this.prisma.cocktailCategory.delete({
-      where: { name },
-    });
+    try {
+      const result = await this.prisma.cocktailCategory.delete({
+        where: { name },
+      });
+      return result;
+    } catch {
+      throw new NotFoundException(
+        "No Cocktail Category with this id could be deleted",
+      );
+    }
   }
 }

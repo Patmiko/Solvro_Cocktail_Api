@@ -5,6 +5,8 @@ import type { TestingModule } from "@nestjs/testing";
 import { Test } from "@nestjs/testing";
 
 import { AppModule } from "./../src/app.module";
+import { cleanDatabase } from "./clean-database";
+import { seedDatabase } from "./seed-database";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication<App>;
@@ -16,6 +18,16 @@ describe("AppController (e2e)", () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    await cleanDatabase();
+    await seedDatabase();
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   it("/ (GET)", () => {

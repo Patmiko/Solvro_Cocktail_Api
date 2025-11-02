@@ -1,4 +1,5 @@
-import path from "node:path";
+// eslint-disable-next-line unicorn/import-style
+import * as path from "node:path";
 
 import { Module } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";

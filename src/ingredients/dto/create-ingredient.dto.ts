@@ -1,21 +1,30 @@
+import { Transform, Type } from "class-transformer";
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateIf,
+} from "class-validator";
+
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import {  IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateIf } from "class-validator";
 
 export class CreateIngredientDto {
-    @IsString()
+  @IsString()
   @IsNotEmpty()
   @ApiProperty({
-    description: 'The name of the ingredient.',
-    example: 'Lemon Juice',
+    description: "The name of the ingredient.",
+    example: "Lemon Juice",
   })
   name: string;
 
   @IsNotEmpty()
   @IsBoolean()
   @Type(() => Boolean)
+  @Transform(({ value }) => value === "true" || value === "1" || value === true)
   @ApiProperty({
-    description: 'Whether the ingredient is alcoholic.',
+    description: "Whether the ingredient is alcoholic.",
     example: false,
   })
   alcoholic: boolean;
@@ -23,16 +32,17 @@ export class CreateIngredientDto {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({
-    description: 'The type or category name of the ingredient (e.g., "Juice", "Spirit").',
-    example: 'Juice',
+    description:
+      'The type or category name of the ingredient (e.g., "Juice", "Spirit").',
+    example: "Juice",
   })
   typeName?: string;
 
   @IsString()
   @IsOptional()
-    @ApiPropertyOptional({
-    description: 'A brief description of the ingredient.',
-    example: 'Freshly squeezed lemon juice adds a tangy flavor to cocktails.',
+  @ApiPropertyOptional({
+    description: "A brief description of the ingredient.",
+    example: "Freshly squeezed lemon juice adds a tangy flavor to cocktails.",
   })
   description?: string;
 
@@ -40,14 +50,12 @@ export class CreateIngredientDto {
   @IsNumber()
   @Type(() => Number)
   @ApiPropertyOptional({
-    description: 'The alcohol percentage of the ingredient (if alcoholic).',
+    description: "The alcohol percentage of the ingredient (if alcoholic).",
     example: 0,
   })
   percentage?: number;
 
-  @ApiProperty({ type: 'string', format: 'binary', required: true })
-  @ValidateIf(o => o.image !== undefined)
-    image: any;
-
-
+  @ApiProperty({ type: "string", format: "binary", required: true })
+  @ValidateIf((o) => o.image !== undefined)
+  image: any;
 }

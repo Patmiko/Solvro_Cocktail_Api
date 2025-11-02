@@ -1,142 +1,171 @@
- 
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateCocktailDto } from './dto/create-cocktail.dto';
-import { UpdateCocktailDto } from './dto/update-cocktail.dto';
-import { randomUUID } from 'node:crypto';
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
-import { PrismaService } from '../prisma/prisma.service';
+import { randomUUID } from "node:crypto";
+import { promises as fs } from "node:fs";
+import path from "node:path";
+
+import { Injectable, NotFoundException } from "@nestjs/common";
+
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateCocktailDto } from "./dto/create-cocktail.dto";
+import { UpdateCocktailDto } from "./dto/update-cocktail.dto";
 
 @Injectable()
 export class CocktailsService {
   constructor(private prisma: PrismaService) {}
-  async create(createCocktailDto: CreateCocktailDto, image: Express.Multer.File) {
+  async create(
+    createCocktailDto: CreateCocktailDto,
+    image: Express.Multer.File,
+  ) {
     let imageUrl: string;
     if (image === undefined) {
-          throw new NotFoundException('Image file is required');
-        }
-    else {
-          const mediaDirection = path.join(process.cwd(), 'media', 'cocktails');
-          const filename = `${randomUUID()}.png`;
-          const filePath = path.join(mediaDirection, filename);
-          await fs.writeFile(filePath, image.buffer); 
-          imageUrl = `/media/cocktails/${filename}`;
-        }
+      throw new NotFoundException("Image file is required");
+    } else {
+      const mediaDirection = path.join(process.cwd(), "media", "cocktails");
+      const filename = `${randomUUID()}.png`;
+      const filePath = path.join(mediaDirection, filename);
+      await fs.writeFile(filePath, image.buffer);
+      imageUrl = `/media/cocktails/${filename}`;
+    }
+    const { name, instructions, glass, categoryName } = createCocktailDto;
+
     return await this.prisma.cocktails.create({
       data: {
-        ...createCocktailDto,
+        name,
+        instructions,
+        glass,
         imageUrl,
+        category: categoryName
+          ? {
+              connectOrCreate: {
+                where: { name: categoryName },
+                create: { name: categoryName },
+              },
+            }
+          : undefined,
       },
     });
   }
 
   async findAll(parameters: {
-  sort?: string;
-  order?: 'asc' | 'desc';
-  name?: string;
-  hasAlcohol?: string;
-  ingredients?: string;
-}) {
-  const { sort, order, name, hasAlcohol, ingredients } = parameters;
-  let ingredientList: string[] = [];
+    sort?: string;
+    order?: "asc" | "desc";
+    name?: string;
+    hasAlcohol?: string;
+    ingredients?: string;
+  }) {
+    const { sort, order, name, hasAlcohol, ingredients } = parameters;
+    let ingredientList: string[] = [];
 
-  if (ingredients !== undefined) {
-    ingredientList = ingredients.split(',').map((ing) => ing.trim());
-  }
+    if (ingredients !== undefined) {
+      ingredientList = ingredients.split(",").map((ing) => ing.trim());
+    }
 
-  const cocktail = await this.prisma.cocktails.findMany({
-    where: {
-      ...((name ?? "") && { name: { contains: name, mode: 'insensitive' } }),
-       ...(hasAlcohol !== undefined &&
-    (hasAlcohol === 'true'
-      ? {
+    const cocktail = await this.prisma.cocktails.findMany({
+      where: {
+        ...((name ?? "") && { name: { contains: name, mode: "insensitive" } }),
+        ...(hasAlcohol !== undefined &&
+          (hasAlcohol === "true"
+            ? {
+                CocktailIngredients: {
+                  some: {
+                    ingredient: {
+                      alcoholic: true,
+                    },
+                  },
+                },
+              }
+            : {
+                // No alcoholic ingredients
+                CocktailIngredients: {
+                  none: {
+                    ingredient: {
+                      alcoholic: true,
+                    },
+                  },
+                },
+              })),
+        ...(ingredientList.length > 0 && {
           CocktailIngredients: {
             some: {
               ingredient: {
-                alcoholic: true,
+                name: { in: ingredientList, mode: "insensitive" },
               },
             },
           },
-        }
-      : {
-          // No alcoholic ingredients
-          CocktailIngredients: {
-            none: {
-              ingredient: {
-                alcoholic: true,
-              },
-            },
-          },
-        })),
-      ...(ingredientList.length > 0 && {
+        }),
+      },
+      orderBy: sort ? { [sort]: order } : { createdAt: "desc" },
+      include: {
         CocktailIngredients: {
-          some: {
+          select: {
+            amount: true,
+            note: true,
             ingredient: {
-              name: { in: ingredientList, mode: 'insensitive' },
+              select: {
+                id: true,
+                name: true,
+                imageUrl: true,
+                type: true,
+                alcoholic: true,
+              },
             },
-          },
-        },
-      }),
-    },
-    orderBy: sort ? { [sort]: order } : { createdAt: 'desc' },
-    include: {
-      CocktailIngredients: {
-        select: {
-          amount: true,
-          note: true,
-          ingredient: {
-            select: { id: true, name: true, imageUrl: true, type: true, alcoholic: true},
           },
         },
       },
-    },
-  });
-  return cocktail;
-}
-
+    });
+    return cocktail;
+  }
 
   async findOne(id: number) {
-  return await this.prisma.cocktails.findUnique({
-    where: { id },
-    include: {
-      category: true,
-      CocktailIngredients: {
-        select: {
-          amount: true,
-          note: true,
-          ingredient: {
-            select: {
-              id: true,
-              name: true,
-              imageUrl: true,
-              type: true,
+    return await this.prisma.cocktails.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        CocktailIngredients: {
+          select: {
+            amount: true,
+            note: true,
+            ingredient: {
+              select: {
+                id: true,
+                name: true,
+                imageUrl: true,
+                type: true,
+              },
             },
           },
         },
       },
-    },
-  });
-}
+    });
+  }
 
-
-  async update(id: number, updateCocktailDto: UpdateCocktailDto, image: Express.Multer.File) {
+  async update(
+    id: number,
+    updateCocktailDto: UpdateCocktailDto,
+    image: Express.Multer.File,
+  ) {
     const cocktail = await this.findOne(id); // Ensure the cocktail exists
-    const newFilePath: string = path.join("media","cocktails",randomUUID(),".png");
+    const newFilePath: string = path.join(
+      "media",
+      "cocktails",
+      randomUUID(),
+      ".png",
+    );
     if (cocktail === null) {
       throw new NotFoundException(`Cocktail with ID ${String(id)} not found`);
     }
 
     if (image !== undefined) {
-          const mediaDirection = path.join(process.cwd(), cocktail.imageUrl);
-          try {
-          await fs.unlink(path.join(mediaDirection));
-          } catch (error) {
-            if (error.code !== 'ENOENT') {console.error('Failed to delete image:', error)
-            ;}
-          }
-          await fs.writeFile(path.join(process.cwd(), newFilePath), image.buffer); 
+      const mediaDirection = path.join(process.cwd(), cocktail.imageUrl);
+      try {
+        await fs.unlink(path.join(mediaDirection));
+      } catch (error) {
+        if (error.code !== "ENOENT") {
+          console.error("Failed to delete image:", error);
         }
-    
+      }
+      await fs.writeFile(path.join(process.cwd(), newFilePath), image.buffer);
+    }
+
     return await this.prisma.cocktails.update({
       where: { id },
       data: {
@@ -152,9 +181,11 @@ export class CocktailsService {
       throw new NotFoundException(`Cocktail with ID ${String(id)} not found`);
     }
     try {
-    await fs.unlink(path.join(process.cwd(), cocktail.imageUrl));
+      await fs.unlink(path.join(process.cwd(), cocktail.imageUrl));
     } catch (error) {
-      if (error.code !== 'ENOENT') {console.error('Failed to delete image:', error);}
+      if (error.code !== "ENOENT") {
+        console.error("Failed to delete image:", error);
+      }
     }
     return await this.prisma.cocktails.delete({
       where: { id },

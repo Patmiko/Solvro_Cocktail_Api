@@ -5,10 +5,10 @@
 <ul>
 <li> Dto i pozbycię się błędów związanych z typami (ogólnie błedy z Linta, chociaż funkcjonalność działa to oczywiście powinny zostać naprawione)
 <li> Dodanie walidatorów
-<li> Dokończenie testów
+<li> Dokończenie testów (jednostkowe). auth e2e test się nie udaję przez wysyłanie maili :/
 </ul>
 <p>
-Generalnie jestem raczej świadomy co jest tutaj do poprawy ale przez problemy z rekrutacją i wynikający z tego krótki termin oddania zadania pozostaje ono w stanie w którym jest.
+Generalnie jestem raczej świadomy co jest tutaj do poprawy ale przez problemy z rekrutacją i wynikający z tego krótki termin oddania zadania pozostaje ono w stanie w którym jest. Also ignorowane Open Handle w testach wynikają z używania serwisu do Maila który nie chciał się zmockować z jakiegoś powodu (też do naprawy).
 </p>
 
 <p>
@@ -34,5 +34,5 @@ MAIL_PORT=587
 Dane logowania:
 MAIL_USER=
 MAIL_PASS=
-</p>
 
+</p>
