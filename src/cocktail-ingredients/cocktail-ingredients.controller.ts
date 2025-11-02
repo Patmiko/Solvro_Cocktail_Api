@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards, Query } from '@nestjs/common';
 import { CocktailIngredientsService } from './cocktail-ingredients.service';
 import { CreateCocktailIngredientDto } from './dto/create-cocktail-ingredient.dto';
 import { UpdateCocktailIngredientDto } from './dto/update-cocktail-ingredient.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Cocktail Ingredients')
@@ -27,10 +27,23 @@ export class CocktailIngredientsController {
   @ApiParam({ name: 'cocktailId', type: Number })
   @ApiResponse({ status: 200, description: 'The cocktail ingredient.' })
   @ApiResponse({ status: 404, description: 'Cocktail ingredient not found.' })
+  @ApiQuery({ name: 'sort', required: false, description: 'Field to sort by (e.g., percentage, createdAt, updatedAt)' })
+  @ApiQuery({ name: 'order', required: false, description: 'Sort order (asc or desc)', example: 'asc' })
+  @ApiQuery({ name : 'filter', required: false, description: 'Filter by ingredient name (partial match)' })
+  @ApiQuery({ name : 'alcoholic', required: false, description: 'Filter by ingredient alcoholic content (true/false)' })
   async findAllForCocktail(
     @Param('cocktailId') cocktailId: string,
+    @Query('sort') sort?: string,
+    @Query('order') order: 'asc' | 'desc' = 'asc',
+    @Query('filter') filter?: string,
+    @Query('alcoholic') alcoholic?: string,
   ) {
-    return await this.cocktailIngredientsService.findAllForCocktail(+cocktailId);
+    return await this.cocktailIngredientsService.findAllForCocktail(+cocktailId, {
+      sort,
+      order,
+      filter,
+      alcoholic,
+    });
   }
 
   @Get(':ingredientId')

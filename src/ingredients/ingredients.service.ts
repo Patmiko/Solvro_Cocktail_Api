@@ -10,7 +10,7 @@ import path from 'node:path';
 export class IngredientsService {
   constructor(private prisma: PrismaService) {}
   async create(createIngredientDto: CreateIngredientDto, image: Express.Multer.File) {
-    const { name, alcoholic, typeName, percantage } = createIngredientDto;
+    const { name, alcoholic, typeName, percentage } = createIngredientDto;
     let imageUrl: string;
     if (image !== undefined) {
       const mediaDirection = path.join(process.cwd(), 'media', 'ingredients');
@@ -27,16 +27,25 @@ export class IngredientsService {
         name,
         alcoholic,
         typeName,
-        percantage,
+        percentage,
         imageUrl: imageUrl,
       },
     });
     return ingredient;
   }
 
-  async findAll() {
-    return await this.prisma.ingredients.findMany();
-  }
+  async findAll({type, alcoholic, name, sort, order}: {type?: string; alcoholic?: string; name?: string; sort?: string; order?: 'asc' | 'desc'} ) {
+    const ingredients = await this.prisma.ingredients.findMany({
+      where: {
+        // To do Nulls should be last in sorting (treat them like 0)
+        ...((name ?? "") && { name: { contains: name, mode: 'insensitive' } }),
+        typeName: type,
+        ...(alcoholic !== undefined && (alcoholic === 'true' ? { some :{alcoholic:true}} : { none: {alcoholic:true}})),
+      },
+      orderBy: sort ? { [sort]: order } : { createdAt: 'desc' },
+    });
+    return ingredients;
+}
 
   async findOne(id: number) {
     const ingredient = await this.prisma.ingredients.findUnique({

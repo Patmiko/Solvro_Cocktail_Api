@@ -43,7 +43,7 @@ export class CreateIngredientDto {
     description: 'The alcohol percentage of the ingredient (if alcoholic).',
     example: 0,
   })
-  percantage?: number;
+  percentage?: number;
 
   @ApiProperty({ type: 'string', format: 'binary', required: true })
   @ValidateIf(o => o.image !== undefined)

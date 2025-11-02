@@ -20,7 +20,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
       name: 'Vodka',
       alcoholic: true,
       typeName: spirit.name,
-      percantage: 40,
+      percentage: 40,
       imageUrl: '/images/vodka.png',
     },
   });
@@ -30,7 +30,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
       name: 'White Rum',
       alcoholic: true,
       typeName: spirit.name,
-      percantage: 37.5,
+      percentage: 37.5,
       imageUrl: '/images/white_rum.png',
     },
   });
@@ -93,6 +93,16 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
       glass: 'Highball',
     },
   });
+  const CocktailWater = await prisma.cocktails.create({
+    data: {
+      name: 'Cocktail Water',
+      instructions:
+        'Just water',
+      imageUrl: '/images/cocktail_water.png',
+      categoryName: classic.name,
+      glass: 'Highball',
+    },
+  });
 
   // --- Cocktail Ingredients (join table) ---
   await prisma.cocktailIngredients.createMany({
@@ -108,6 +118,9 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
       { cocktailId: vodkaTonic.id, ingredientId: vodka.id, amount: "50 ml", note: '' },
       { cocktailId: vodkaTonic.id, ingredientId: sodaWater.id, amount: "100 ml", note: 'or tonic water' },
       { cocktailId: vodkaTonic.id, ingredientId: limeJuice.id, amount: "10 ml", note: 'optional' },
+
+      // Cocktail Water
+      { cocktailId: CocktailWater.id, ingredientId: sodaWater.id, amount: "200 ml", note: '' },
     ],
   });
   const bc = await bcrypt.hash("password", 10);

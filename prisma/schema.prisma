@@ -44,7 +44,7 @@ model Ingredients {
   alcoholic           Boolean
   typeName            String?
   type                IngredientType?       @relation(fields: [typeName], references: [name], onDelete: SetNull, onUpdate: Cascade)
-  percantage          Float?
+  percentage          Float?
   imageUrl            String
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
@@ -95,8 +95,10 @@ model CocktailIngredients {
   cocktail   Cocktails   @relation(fields: [cocktailId], references: [id], onDelete: Cascade)
   ingredient Ingredients @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
 
-  amount String
-  note   String?
+  amount    String
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@id([cocktailId, ingredientId])
 }

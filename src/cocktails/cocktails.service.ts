@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCocktailDto } from './dto/create-cocktail.dto';
 import { UpdateCocktailDto } from './dto/update-cocktail.dto';
@@ -29,9 +30,70 @@ export class CocktailsService {
     });
   }
 
-  async findAll() {
-    return await this.prisma.cocktails.findMany();
+  async findAll(params: {
+  sort?: string;
+  order?: 'asc' | 'desc';
+  name?: string;
+  hasAlcohol?: string;
+  ingredients?: string;
+}) {
+  const { sort, order, name, hasAlcohol, ingredients } = params;
+  let ingredientList: string[] = [];
+
+  if (ingredients !== undefined) {
+    ingredientList = ingredients.split(',').map((ing) => ing.trim());
   }
+
+  const cocktail = await this.prisma.cocktails.findMany({
+    where: {
+      ...((name ?? "") && { name: { contains: name, mode: 'insensitive' } }),
+       ...(hasAlcohol !== undefined &&
+    (hasAlcohol === 'true'
+      ? {
+          CocktailIngredients: {
+            some: {
+              ingredient: {
+                alcoholic: true,
+              },
+            },
+          },
+        }
+      : {
+          // No alcoholic ingredients
+          CocktailIngredients: {
+            none: {
+              ingredient: {
+                alcoholic: true,
+              },
+            },
+          },
+        })),
+      ...(ingredientList.length > 0 && {
+        CocktailIngredients: {
+          some: {
+            ingredient: {
+              name: { in: ingredientList, mode: 'insensitive' },
+            },
+          },
+        },
+      }),
+    },
+    orderBy: sort ? { [sort]: order } : { createdAt: 'desc' },
+    include: {
+      CocktailIngredients: {
+        select: {
+          amount: true,
+          note: true,
+          ingredient: {
+            select: { id: true, name: true, imageUrl: true, type: true, alcoholic: true},
+          },
+        },
+      },
+    },
+  });
+  return cocktail;
+}
+
 
   async findOne(id: number) {
   return await this.prisma.cocktails.findUnique({

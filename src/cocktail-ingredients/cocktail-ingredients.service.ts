@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCocktailIngredientDto } from './dto/create-cocktail-ingredient.dto';
 import { UpdateCocktailIngredientDto } from './dto/update-cocktail-ingredient.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -23,16 +24,55 @@ export class CocktailIngredientsService {
       where: { cocktailId_ingredientId: { cocktailId, ingredientId } },
     });
   }
-  async findAllForCocktail(cocktailId: number) {
-    return await this.prisma.cocktailIngredients.findMany({
-      where: { cocktailId },
-      select: {
-        ingredient: true,
-        amount: true,
-        note: true,
-      },
-    });
+  async findAllForCocktail(
+  cocktailId: number,
+  params: {
+    sort?: string;
+    order?: 'asc' | 'desc';
+    filter?: string;
+    alcoholic?: string;
+  },
+) {
+  const checkCocktail = await this.prisma.cocktailIngredients.findFirst({
+    where: { cocktailId },
+  });
+  if (checkCocktail === null) {
+    throw new NotFoundException(`Cocktail with ID ${String(cocktailId)} not found`);
   }
+  const ingredients = await this.prisma.cocktailIngredients.findMany({
+    where: {
+      cocktailId,
+      ...((params.filter ?? "") && {
+        ingredient: {
+          name: { contains: params.filter, mode: 'insensitive' },
+        },
+      }),
+      ...(params.alcoholic !== undefined && {
+        ingredient: { alcoholic: params.alcoholic === 'true' },
+      }),
+    },
+    orderBy: 
+    (params.sort ?? "") && ['name', 'alcoholic', 'typeName', 'percentage', 'createdAt','updatedAt'].includes(params.sort ?? "createdAt")
+        ? { ingredient: { [params.sort ?? "createdAt"]: params.order ?? 'asc' } }
+        : { createdAt: 'asc' },
+    select: {
+      amount: true,
+      note: true,
+      ingredient: {
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+          typeName: true,
+          alcoholic: true,
+          percentage: true,
+          
+        },
+      },
+    },
+  });
+  return ingredients;
+}
 
   async update(cocktailId: number,ingredientId: number, updateCocktailIngredientDto: UpdateCocktailIngredientDto) {
     return await this.prisma.cocktailIngredients.update({

@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UploadedFile, UseGuards, UseInterceptors, Query } from '@nestjs/common';
 import { CocktailsService } from './cocktails.service';
 import { CreateCocktailDto } from './dto/create-cocktail.dto';
 import { UpdateCocktailDto } from './dto/update-cocktail.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth, ApiConsumes, ApiQuery } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -15,6 +15,7 @@ export class CocktailsController {
   @ApiOperation({ summary: 'Create a new cocktail' })
   @ApiBody({ type: CreateCocktailDto })
   @ApiResponse({ status: 201, description: 'Cocktail created successfully.' })
+  @ApiResponse({ status: 400, description: 'Invalid input data.' })
   @UseGuards(AuthGuard)
   @ApiBearerAuth("access-token")
   @ApiConsumes('multipart/form-data')
@@ -26,8 +27,19 @@ export class CocktailsController {
   @Get()
   @ApiOperation({ summary: 'Get all cocktails' })
   @ApiResponse({ status: 200, description: 'List of cocktails.' })
-  async findAll() {
-    return await this.cocktailsService.findAll();
+  @ApiQuery({ name: 'sort', required: false, description: 'Field to sort by (e.g., name, createdAt, updatedAt)' })
+  @ApiQuery({ name: 'order', required: false, description: 'Sort order (asc or desc)', example: 'asc' })
+  @ApiQuery({ name: 'name', required: false, description: 'Search by cocktail name (partial match)' })
+  @ApiQuery({ name: 'hasAlcohol', required: false, description: 'Filter cocktails that contain alcohol (true/false)', example: 'true' })
+  @ApiQuery({ name: 'ingredients', required: false, description: 'Comma-separated list of ingredients to filter by (e.g., rum,lime)' })
+  async findAll(
+  @Query('sort') sort?: string,
+  @Query('order') order: 'asc' | 'desc' = 'asc',
+  @Query('name') name?: string,
+  @Query('hasAlcohol') hasAlcohol?: string,
+  @Query('ingredients') ingredients?: string,
+  ) {
+    return await this.cocktailsService.findAll({sort, order, name, hasAlcohol, ingredients});
   }
 
   @Get(':id')

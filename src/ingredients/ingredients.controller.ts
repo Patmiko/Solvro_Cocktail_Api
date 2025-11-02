@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { IngredientsService } from './ingredients.service';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -27,8 +27,18 @@ export class IngredientsController {
   @Get()
   @ApiOperation({ summary: 'Get all ingredients' })
   @ApiResponse({ status: 200, description: 'List of ingredients.' })
-  async findAll() {
-    return await this.ingredientsService.findAll();
+  @ApiQuery({ name: 'type', required: false, description: 'Filter ingredients by type (e.g., "Spirit", "Mixer")' })
+  @ApiQuery({ name: 'alcoholic', required: false, description: 'Filter ingredients by alcoholic content (true/false)' })
+  @ApiQuery({ name: 'name', required: false, description: 'Search by ingredient name (partial match)' })
+  @ApiQuery({ name: 'sort', required: false, description: 'Field to sort by (e.g., name, percentage, createdAt, updatedAt)' })
+  @ApiQuery({ name: 'order', required: false, description: 'Sort order (asc or desc)', example: 'asc' })
+  async findAll(
+    @Query('type') type?: string,
+    @Query('alcoholic') alcoholic?: string, 
+    @Query('name') name?: string, 
+    @Query('sort') sort?: string,
+    @Query('order') order: 'asc' | 'desc' = 'asc',) {
+    return await this.ingredientsService.findAll({type, alcoholic, name, sort, order});
   }
 
   @Get(':id')
