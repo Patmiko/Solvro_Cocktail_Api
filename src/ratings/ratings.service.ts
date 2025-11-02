@@ -59,7 +59,7 @@ export class RatingsService {
     return rating;
   }
 
-  update(cocktailId: number, updateRatingDto: UpdateRatingDto, userEmail: string, user: any) {
+  async update(cocktailId: number, updateRatingDto: UpdateRatingDto, userEmail: string, user: any) {
     const isOwner = user.email === userEmail;
     const rating = this.findOne(cocktailId, userEmail);
 
@@ -78,7 +78,7 @@ export class RatingsService {
     });
   }
 
-  remove(cocktailId: number, userEmail: string, user: any) {
+  async remove(cocktailId: number, userEmail: string, user: any) {
     const rating = this.findOne(cocktailId, userEmail);
     const isOwner = user.email === userEmail;
 

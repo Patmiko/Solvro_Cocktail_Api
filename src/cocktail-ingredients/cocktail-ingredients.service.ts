@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+ 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCocktailIngredientDto } from './dto/create-cocktail-ingredient.dto';
 import { UpdateCocktailIngredientDto } from './dto/update-cocktail-ingredient.dto';
@@ -26,7 +26,7 @@ export class CocktailIngredientsService {
   }
   async findAllForCocktail(
   cocktailId: number,
-  params: {
+  parameters: {
     sort?: string;
     order?: 'asc' | 'desc';
     filter?: string;
@@ -42,18 +42,18 @@ export class CocktailIngredientsService {
   const ingredients = await this.prisma.cocktailIngredients.findMany({
     where: {
       cocktailId,
-      ...((params.filter ?? "") && {
+      ...((parameters.filter ?? "") && {
         ingredient: {
-          name: { contains: params.filter, mode: 'insensitive' },
+          name: { contains: parameters.filter, mode: 'insensitive' },
         },
       }),
-      ...(params.alcoholic !== undefined && {
-        ingredient: { alcoholic: params.alcoholic === 'true' },
+      ...(parameters.alcoholic !== undefined && {
+        ingredient: { alcoholic: parameters.alcoholic === 'true' },
       }),
     },
     orderBy: 
-    (params.sort ?? "") && ['name', 'alcoholic', 'typeName', 'percentage', 'createdAt','updatedAt'].includes(params.sort ?? "createdAt")
-        ? { ingredient: { [params.sort ?? "createdAt"]: params.order ?? 'asc' } }
+    (parameters.sort ?? "") && ['name', 'alcoholic', 'typeName', 'percentage', 'createdAt','updatedAt'].includes(parameters.sort ?? "createdAt")
+        ? { ingredient: { [parameters.sort ?? "createdAt"]: parameters.order ?? 'asc' } }
         : { createdAt: 'asc' },
     select: {
       amount: true,

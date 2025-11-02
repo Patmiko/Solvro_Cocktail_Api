@@ -12,15 +12,15 @@ export class IngredientsService {
   async create(createIngredientDto: CreateIngredientDto, image: Express.Multer.File) {
     const { name, alcoholic, typeName, percentage } = createIngredientDto;
     let imageUrl: string;
-    if (image !== undefined) {
+    if (image === undefined) {
+      throw new NotFoundException('Image file is required');
+    }
+    else {
       const mediaDirection = path.join(process.cwd(), 'media', 'ingredients');
       const filename = `${randomUUID()}.png`;
       const filePath = path.join(mediaDirection, filename);
       await fs.writeFile(filePath, image.buffer); 
       imageUrl = `/media/ingredients/${filename}`;
-    }
-    else {
-      throw new NotFoundException('Image file is required');
     }
     const ingredient = await this.prisma.ingredients.create({
       data: {
@@ -28,7 +28,7 @@ export class IngredientsService {
         alcoholic,
         typeName,
         percentage,
-        imageUrl: imageUrl,
+        imageUrl,
       },
     });
     return ingredient;
@@ -62,15 +62,15 @@ export class IngredientsService {
     if (!ingredient) {
       throw new NotFoundException(`Ingredient with ID ${id} not found`);
     }
-    let newFilePath: string = path.join(process.cwd(), "media","ingredients",randomUUID()+".png");
+    let newFilePath: string = path.join(process.cwd(), "media","ingredients",`${randomUUID()}.png`);
 
     if (image) {
       const oldImagePath = path.join(process.cwd(), ingredient.imageUrl);
 
       try {
         await fs.unlink(oldImagePath);
-      } catch (err) {
-        if (err.code !== 'ENOENT') console.error('Failed to delete old image:', err);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {console.error('Failed to delete old image:', error);}
       }
 
       const newFileName = `ingredient_${id}_${Date.now()}.jpg`;
@@ -97,8 +97,8 @@ export class IngredientsService {
     const filePath = path.join(process.cwd(), ingredient.imageUrl);
     try {
     await fs.unlink(path.join(filePath)); // Delete image file
-    } catch (err) {
-      if (err.code !== 'ENOENT') console.error('Failed to delete image:', err);
+    } catch (error) {
+      if (error.code !== 'ENOENT') {console.error('Failed to delete image:', error);}
     }
     return await this.prisma.ingredients.delete({
       where: { id },

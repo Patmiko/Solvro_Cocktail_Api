@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+ 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCocktailDto } from './dto/create-cocktail.dto';
 import { UpdateCocktailDto } from './dto/update-cocktail.dto';
@@ -12,32 +12,32 @@ export class CocktailsService {
   constructor(private prisma: PrismaService) {}
   async create(createCocktailDto: CreateCocktailDto, image: Express.Multer.File) {
     let imageUrl: string;
-    if (image !== undefined) {
+    if (image === undefined) {
+          throw new NotFoundException('Image file is required');
+        }
+    else {
           const mediaDirection = path.join(process.cwd(), 'media', 'cocktails');
           const filename = `${randomUUID()}.png`;
           const filePath = path.join(mediaDirection, filename);
           await fs.writeFile(filePath, image.buffer); 
           imageUrl = `/media/cocktails/${filename}`;
         }
-    else {
-          throw new NotFoundException('Image file is required');
-        }
     return await this.prisma.cocktails.create({
       data: {
         ...createCocktailDto,
-        imageUrl: imageUrl,
+        imageUrl,
       },
     });
   }
 
-  async findAll(params: {
+  async findAll(parameters: {
   sort?: string;
   order?: 'asc' | 'desc';
   name?: string;
   hasAlcohol?: string;
   ingredients?: string;
 }) {
-  const { sort, order, name, hasAlcohol, ingredients } = params;
+  const { sort, order, name, hasAlcohol, ingredients } = parameters;
   let ingredientList: string[] = [];
 
   if (ingredients !== undefined) {
@@ -121,7 +121,7 @@ export class CocktailsService {
 
   async update(id: number, updateCocktailDto: UpdateCocktailDto, image: Express.Multer.File) {
     const cocktail = await this.findOne(id); // Ensure the cocktail exists
-    let newFilePath: string = path.join("media","cocktails",randomUUID(),".png");
+    const newFilePath: string = path.join("media","cocktails",randomUUID(),".png");
     if (cocktail === null) {
       throw new NotFoundException(`Cocktail with ID ${String(id)} not found`);
     }
@@ -141,7 +141,7 @@ export class CocktailsService {
       where: { id },
       data: {
         ...updateCocktailDto,
-        imageUrl: image !== undefined ? `/${newFilePath}` : cocktail.imageUrl,
+        imageUrl: image === undefined ? cocktail.imageUrl : `/${newFilePath}`,
       },
     });
   }
@@ -154,7 +154,7 @@ export class CocktailsService {
     try {
     await fs.unlink(path.join(process.cwd(), cocktail.imageUrl));
     } catch (error) {
-      if (error.code !== 'ENOENT') console.error('Failed to delete image:', error);
+      if (error.code !== 'ENOENT') {console.error('Failed to delete image:', error);}
     }
     return await this.prisma.cocktails.delete({
       where: { id },

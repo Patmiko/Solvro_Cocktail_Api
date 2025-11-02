@@ -97,7 +97,7 @@ export class AuthController {
 
     try {
       const payload = this.jwt.verify(token);
-      if (payload.purpose !== 'email-verify') throw new BadRequestException("Invalid token");
+      if (payload.purpose !== 'email-verify') {throw new BadRequestException("Invalid token");}
       await this.authService.markVerified(payload.sub);
       return { message: 'Email verified successfully' };
     } catch {
@@ -116,7 +116,7 @@ export class AuthController {
   async reset(@Body() dto: ResetPasswordDto) {
     try {
       const payload = this.jwt.verify(dto.token);
-      if (payload.purpose !== 'reset-password') throw new Error();
+      if (payload.purpose !== 'reset-password') {throw new Error();}
 
       await this.authService.changePassword(payload.sub, dto.newPassword);
 
@@ -137,7 +137,7 @@ export class AuthController {
   async forgot(@Body() body: ForgotPasswordDto) {
     const { email } = body;
     const user = await this.userService.findOne(email);
-    if (!user) return { message: 'Account with this email does not exist' };
+    if (!user) {return { message: 'Account with this email does not exist' };}
 
     const token = this.jwt.sign(
       { sub: user.email, purpose: 'reset-password' },
