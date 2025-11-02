@@ -77,7 +77,6 @@ model CocktailCategory {
 }
 
 model Rating {
-  id         Int    @id @default(autoincrement())
   userEmail  String
   cocktailId Int
   rating     Float
@@ -85,7 +84,7 @@ model Rating {
   user     User      @relation(fields: [userEmail], references: [email], onDelete: Cascade)
   cocktail Cocktails @relation(fields: [cocktailId], references: [id], onDelete: Cascade)
 
-  @@unique([userEmail, cocktailId])
+  @@id([userEmail, cocktailId])
 }
 
 model CocktailIngredients {
