@@ -10,6 +10,7 @@
 <p>
 Generalnie jestem raczej świadomy co jest tutaj do poprawy ale przez problemy z rekrutacją i wynikający z tego krótki termin oddania zadania pozostaje ono w stanie w którym jest. Also ignorowane Open Handle w testach wynikają z używania serwisu do Maila który nie chciał się zmockować z jakiegoś powodu (też do naprawy).
 </p>
+<a href="https://github.com/MrChazar/minecraft-pixel-art-generator/tree/mail-verification/genfr-nest">Projekt Generator Frajdy z wakacyjnego wyzwania Solvro:</a>
 
 <p>
 Grafika przedstawiająca bazę danych
