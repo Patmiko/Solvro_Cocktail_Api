@@ -1,0 +1,98 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateIngredientDto } from './dto/create-ingredient.dto';
+import { UpdateIngredientDto } from './dto/update-ingredient.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { randomUUID } from 'node:crypto';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+
+@Injectable()
+export class IngredientsService {
+  constructor(private prisma: PrismaService) {}
+  async create(createIngredientDto: CreateIngredientDto, image: Express.Multer.File) {
+    const { name, alcoholic, typeName, percantage } = createIngredientDto;
+    let imageUrl: string;
+    if (image !== undefined) {
+      const mediaDirection = path.join(process.cwd(), 'media', 'ingredients');
+      const filename = `${randomUUID()}.png`;
+      const filePath = path.join(mediaDirection, filename);
+      await fs.writeFile(filePath, image.buffer); 
+      imageUrl = `/media/ingredients/${filename}`;
+    }
+    else {
+      throw new NotFoundException('Image file is required');
+    }
+    const ingredient = await this.prisma.ingredients.create({
+      data: {
+        name,
+        alcoholic,
+        typeName,
+        percantage,
+        imageUrl: imageUrl,
+      },
+    });
+    return ingredient;
+  }
+
+  async findAll() {
+    return await this.prisma.ingredients.findMany();
+  }
+
+  async findOne(id: number) {
+    const ingredient = await this.prisma.ingredients.findUnique({
+      where: { id },
+    });
+    if (ingredient === null) {
+      throw new NotFoundException(`Ingredient with ID ${String(id)} not found`);
+    }
+    return ingredient;
+  }
+
+  async update(id: number, updateIngredientDto: UpdateIngredientDto, image: Express.Multer.File) {
+    const ingredient = await this.findOne(id);
+    if (!ingredient) {
+      throw new NotFoundException(`Ingredient with ID ${id} not found`);
+    }
+    let newFilePath: string = path.join(process.cwd(), "media","ingredients",randomUUID()+".png");
+
+    if (image) {
+      const oldImagePath = path.join(process.cwd(), ingredient.imageUrl);
+
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        if (err.code !== 'ENOENT') console.error('Failed to delete old image:', err);
+      }
+
+      const newFileName = `ingredient_${id}_${Date.now()}.jpg`;
+      newFilePath = path.join('media', 'ingredients', newFileName);
+      const absoluteNewFilePath = path.join(process.cwd(), newFilePath);
+
+      await fs.writeFile(absoluteNewFilePath, image.buffer);
+
+    }
+    return await this.prisma.ingredients.update({
+      where: { id },
+      data: {...updateIngredientDto,
+        imageUrl: newFilePath,
+      },
+
+    });
+  }
+
+  async remove(id: number) {
+    const ingredient = await this.findOne(id);
+    if (ingredient === null) {
+      throw new NotFoundException(`Ingredient with ID ${String(id)} not found`);
+    }
+    const filePath = path.join(process.cwd(), ingredient.imageUrl);
+    try {
+    await fs.unlink(path.join(filePath)); // Delete image file
+    } catch (err) {
+      if (err.code !== 'ENOENT') console.error('Failed to delete image:', err);
+    }
+    return await this.prisma.ingredients.delete({
+      where: { id },
+    });
+  }
+}

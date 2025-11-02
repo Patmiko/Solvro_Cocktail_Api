@@ -15,7 +15,6 @@ import { EmailModule } from "../email/email.module";
     signOptions: { expiresIn: '3600s' },
   }),
   EmailModule
-
 ],
   exports: [AuthService],
 })

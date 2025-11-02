@@ -4,7 +4,8 @@
 /build
 
 # media files
-/media/*
+/media/ingredients/*
+/media/cocktails/*
 
 # Logs
 logs

@@ -19,7 +19,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
     data: {
       name: 'Vodka',
       alcoholic: true,
-      typeId: spirit.id,
+      typeName: spirit.name,
       percantage: 40,
       imageUrl: '/images/vodka.png',
     },
@@ -29,7 +29,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
     data: {
       name: 'White Rum',
       alcoholic: true,
-      typeId: spirit.id,
+      typeName: spirit.name,
       percantage: 37.5,
       imageUrl: '/images/white_rum.png',
     },
@@ -39,7 +39,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
     data: {
       name: 'Lime Juice',
       alcoholic: false,
-      typeId: juice.id,
+      typeName: juice.name,
       imageUrl: '/images/lime_juice.png',
     },
   });
@@ -48,7 +48,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
     data: {
       name: 'Sugar Syrup',
       alcoholic: false,
-      typeId: mixer.id,
+      typeName: mixer.name,
       imageUrl: '/images/sugar_syrup.png',
     },
   });
@@ -57,7 +57,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
     data: {
       name: 'Mint Leaves',
       alcoholic: false,
-      typeId: garnish.id,
+      typeName: garnish.name,
       imageUrl: '/images/mint_leaves.png',
     },
   });
@@ -66,7 +66,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
     data: {
       name: 'Soda Water',
       alcoholic: false,
-      typeId: mixer.id,
+      typeName: mixer.name,
       imageUrl: '/images/soda_water.png',
     },
   });
@@ -78,7 +78,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
       instructions:
         'Muddle mint leaves with sugar syrup and lime juice. Add rum, ice, and top with soda water. Stir gently and garnish with mint.',
       imageUrl: '/images/mojito.png',
-      categoryId: tropical.id,
+      categoryName: tropical.name,
       glass: 'Highball',
     },
   });
@@ -89,7 +89,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
       instructions:
         'Fill a glass with ice. Add vodka and top with tonic water. Stir gently and garnish with lime.',
       imageUrl: '/images/vodka_tonic.png',
-      categoryId: classic.id,
+      categoryName: classic.name,
       glass: 'Highball',
     },
   });
@@ -98,16 +98,16 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
   await prisma.cocktailIngredients.createMany({
     data: [
       // Mojito
-      { cocktailId: mojito.id, ingredientId: rum.id, amount: 50, unit: 'ml', note: '' },
-      { cocktailId: mojito.id, ingredientId: limeJuice.id, amount: 25, unit: 'ml', note: 'fresh' },
-      { cocktailId: mojito.id, ingredientId: sugarSyrup.id, amount: 15, unit: 'ml', note: '' },
-      { cocktailId: mojito.id, ingredientId: mintLeaves.id, amount: 6, unit: 'leaves', note: 'muddled' },
-      { cocktailId: mojito.id, ingredientId: sodaWater.id, amount: 60, unit: 'ml', note: 'top up' },
+      { cocktailId: mojito.id, ingredientId: rum.id, amount: " ml", note: '' },
+      { cocktailId: mojito.id, ingredientId: limeJuice.id, amount: "25 ml", note: 'fresh' },
+      { cocktailId: mojito.id, ingredientId: sugarSyrup.id, amount: "15 ml", note: '' },
+      { cocktailId: mojito.id, ingredientId: mintLeaves.id, amount: "6 leaves", note: 'muddled' },
+      { cocktailId: mojito.id, ingredientId: sodaWater.id, amount: "60 ml", note: 'top up' },
 
       // Vodka Tonic
-      { cocktailId: vodkaTonic.id, ingredientId: vodka.id, amount: 50, unit: 'ml', note: '' },
-      { cocktailId: vodkaTonic.id, ingredientId: sodaWater.id, amount: 100, unit: 'ml', note: 'or tonic water' },
-      { cocktailId: vodkaTonic.id, ingredientId: limeJuice.id, amount: 10, unit: 'ml', note: 'optional' },
+      { cocktailId: vodkaTonic.id, ingredientId: vodka.id, amount: "50 ml", note: '' },
+      { cocktailId: vodkaTonic.id, ingredientId: sodaWater.id, amount: "100 ml", note: 'or tonic water' },
+      { cocktailId: vodkaTonic.id, ingredientId: limeJuice.id, amount: "10 ml", note: 'optional' },
     ],
   });
   const bc = await bcrypt.hash("password", 10);
