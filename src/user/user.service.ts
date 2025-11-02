@@ -16,12 +16,12 @@ export class UserService {
 
   async disableUser(email: string) {
     const user = await this.findByIdOrFail(email);
-    user.is_enabled = false;
+    user.isEnabled = false;
     await this.mergeUserData(user);
   }
   async enableUser(email: string) {
     const user = await this.findByIdOrFail(email);
-    user.is_enabled = true;
+    user.isEnabled = true;
     await this.mergeUserData(user);
   }
   async verifyUser(email: string) {
@@ -90,7 +90,7 @@ export class UserService {
         password: bcrypt.hashSync(dto.password, 10),
         name: dto.name ?? '',
         about_me: dto.about_me ?? '',
-        is_enabled: true,
+        isEnabled: true,
         role: "USER",
       },
     });

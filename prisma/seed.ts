@@ -131,7 +131,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
       email: "Marcin@kghm.com",
       name: "Johnny Bravo",
       password: bc,
-      is_enabled: true,
+      isEnabled: true,
       role: "USER",
       isVerified:true
     },
@@ -144,7 +144,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
       email: "Grzyb@gmail.com",
       name: "Admin",
       password: bc, 
-      is_enabled: true,
+      isEnabled: true,
       role: "ADMIN",
       isVerified:true
     },
@@ -157,7 +157,7 @@ const tropical = await prisma.cocktailCategory.create({ data: { name: 'Tropical'
       email: "Modo@gmail.com",
       name: "Moderator",
       password: bc,
-      is_enabled: true,
+      isEnabled: true,
       role: "MODERATOR",
       isVerified:true
     },

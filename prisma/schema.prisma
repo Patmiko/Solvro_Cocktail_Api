@@ -18,7 +18,7 @@ model User {
   password    String
   about_me    String?
   role        Role          @default(USER)
-  is_enabled  Boolean
+  isEnabled   Boolean
   name        String?
   createdAt   DateTime      @default(now())
   isVerified  Boolean       @default(false)

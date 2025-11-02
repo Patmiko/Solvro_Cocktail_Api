@@ -25,7 +25,7 @@ export class AuthService {
     const user = await this.userService.findOne(email);
     if (
       user === null ||
-      !user.is_enabled ||
+      !user.isEnabled ||
       !(await bcrypt.compare(password, user.password).catch(() => false)) ||
       !user.isVerified
     ) {
