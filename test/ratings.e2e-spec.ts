@@ -29,6 +29,7 @@ describe("RatingsController (e2e)", () => {
     await app.init();
     await cleanDatabase();
     await seedDatabase();
+    await prisma.rating.deleteMany();
 
     const email = "Grzyb@gmail.com";
     const password = "password";
@@ -51,7 +52,6 @@ describe("RatingsController (e2e)", () => {
       .attach("image", testImage)
       .expect(201);
     cocktailId = res.body.id;
-    console.warn(cocktailId);
   }, 9999);
 
   afterAll(async () => {
@@ -63,24 +63,23 @@ describe("RatingsController (e2e)", () => {
       const res = await request(app.getHttpServer())
         .post(`${baseUrl}/${String(cocktailId)}/ratings`)
         .set("Authorization", `Bearer ${token}`)
-        .send({ value: 4.2 })
+        .send({ rating: 5 })
         .expect(201);
-
-      expect(res.body).toHaveProperty("value", 4.2);
+      expect(res.body).toHaveProperty("rating", 5);
     }, 9999);
 
     it("should not allow rating the same cocktail twice", async () => {
       await request(app.getHttpServer())
-        .post(`${baseUrl}/${String(cocktailId)}/ratings`)
+        .post(`${baseUrl}/4/ratings`)
         .set("Authorization", `Bearer ${token}`)
-        .send({ value: 4 })
+        .send({ rating: 4 })
         .expect(409);
     });
 
     it("should fail without authentication", async () => {
       await request(app.getHttpServer())
         .post(`${baseUrl}/${String(cocktailId)}/ratings`)
-        .send({ value: 4 })
+        .send({ rating: 4 })
         .expect(401);
     });
   });
@@ -88,7 +87,7 @@ describe("RatingsController (e2e)", () => {
   describe(`${baseUrl}/:cocktailId/ratings (GET)`, () => {
     it("should fetch all ratings for the cocktail", async () => {
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/${String(cocktailId)}/ratings`)
+        .get(`${baseUrl}/${cocktailId}/ratings`)
         .expect(200);
 
       expect(Array.isArray(res.body)).toBe(true);
@@ -104,7 +103,7 @@ describe("RatingsController (e2e)", () => {
         .expect(200);
 
       expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body[0]).toHaveProperty("value");
+      expect(res.body[0]).toHaveProperty("rating");
     });
 
     it("should fail without authentication", async () => {
@@ -117,10 +116,10 @@ describe("RatingsController (e2e)", () => {
   describe(`${baseUrl}/:cocktailId/ratings/:userEmail (GET)`, () => {
     it("should get a specific rating by cocktailId and userEmail", async () => {
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/${String(cocktailId)}/ratings/ratinguser@example.com`)
+        .get(`${baseUrl}/${String(cocktailId)}/ratings/Grzyb@gmail.com`)
         .expect(200);
 
-      expect(res.body).toHaveProperty("value", 5);
+      expect(res.body).toHaveProperty("rating", 5);
     });
 
     it("should return 404 for non-existent rating", async () => {
@@ -133,21 +132,19 @@ describe("RatingsController (e2e)", () => {
   describe(`${baseUrl}/:cocktailId/ratings/:userEmail (PATCH)`, () => {
     it("should update the user’s rating", async () => {
       const res = await request(app.getHttpServer())
-        .patch(
-          `${baseUrl}/${String(cocktailId)}/ratings/ratinguser@example.com`,
-        )
+        .patch(`${baseUrl}/${String(cocktailId)}/ratings/Grzyb@gmail.com`)
         .set("Authorization", `Bearer ${token}`)
-        .send({ value: 3 })
+        .send({ rating: 3 })
         .expect(200);
 
-      expect(res.body).toHaveProperty("value", 3);
+      expect(res.body).toHaveProperty("rating", 3);
     });
 
     it("should return 404 if rating not found", async () => {
       await request(app.getHttpServer())
         .patch(`${baseUrl}/9999/ratings/nonexistent@example.com`)
         .set("Authorization", `Bearer ${token}`)
-        .send({ value: 2 })
+        .send({ rating: 2 })
         .expect(404);
     });
   });
@@ -155,18 +152,13 @@ describe("RatingsController (e2e)", () => {
   describe(`${baseUrl}/:cocktailId/ratings/:userEmail (DELETE)`, () => {
     it("should delete a rating", async () => {
       await request(app.getHttpServer())
-        .delete(
-          `${baseUrl}/${String(cocktailId)}/ratings/ratinguser@example.com`,
-        )
+        .delete(`${baseUrl}/${String(cocktailId)}/ratings/Grzyb@gmail.com`)
         .set("Authorization", `Bearer ${token}`)
         .expect(200);
 
       const deleted = await prisma.rating.findUnique({
         where: {
-          cocktailId_userEmail: {
-            cocktailId,
-            userEmail: "ratinguser@example.com",
-          },
+          userEmail_cocktailId: { cocktailId, userEmail: "Grzyb@gmail.com" },
         },
       });
       expect(deleted).toBeNull();
@@ -174,7 +166,7 @@ describe("RatingsController (e2e)", () => {
 
     it("should return 404 if rating not found", async () => {
       await request(app.getHttpServer())
-        .delete(`${baseUrl}/9999/ratings/nonexistent@example.com`)
+        .delete(`${baseUrl}/9999/ratings/Grzyb@gmail.com`)
         .set("Authorization", `Bearer ${token}`)
         .expect(404);
     });

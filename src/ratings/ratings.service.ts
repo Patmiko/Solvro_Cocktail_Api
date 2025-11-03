@@ -18,19 +18,26 @@ export class RatingsService {
     email: string,
     cocktailId: number,
   ) {
-    try {
-      const clampedRating = Math.min(Math.max(createRatingDto.rating, 0), 5);
-
-      return await this.prisma.rating.create({
-        data: {
-          userEmail: email,
-          cocktailId,
-          rating: clampedRating,
-        },
-      });
-    } catch {
-      throw new ConflictException("You have already rated this cocktail.");
+    const clampedRating = Math.min(Math.max(createRatingDto.rating, 0), 5);
+    const existing = await this.prisma.rating.findFirst({
+      where: { userEmail: email, cocktailId },
+    });
+    if (existing !== null) {
+      throw new ConflictException(
+        `Rating for cocktail ID ${String(cocktailId)} by user ${email} already exists`,
+      );
     }
+    return await this.prisma.rating.create({
+      data: {
+        rating: clampedRating,
+        user: {
+          connect: { email },
+        },
+        cocktail: {
+          connect: { id: cocktailId },
+        },
+      },
+    });
   }
 
   async findAll(cocktailId: number) {
@@ -54,11 +61,13 @@ export class RatingsService {
     });
   }
 
-  async findOne(cocktailId: number, userEmail: string) {
+  async findOne(cocktailId: number | string, userEmail: string) {
     const rating = await this.prisma.rating.findUnique({
-      where: { userEmail_cocktailId: { cocktailId, userEmail } },
+      where: {
+        userEmail_cocktailId: { cocktailId: Number(cocktailId), userEmail },
+      },
     });
-    if (rating === null || rating === undefined) {
+    if (!rating) {
       throw new NotFoundException(
         `Rating for cocktail ID ${String(cocktailId)} by user ${userEmail} not found`,
       );
@@ -73,16 +82,16 @@ export class RatingsService {
     user: any,
   ) {
     const isOwner = user.email === userEmail;
-    const rating = this.prisma.rating.findFirst({
-      where: { cocktailId, userEmail },
+    const rating = await this.prisma.rating.findFirst({
+      where: { cocktailId: Number(cocktailId), userEmail },
     });
 
-    if (rating === null || rating === undefined) {
+    if (!rating) {
       throw new NotFoundException(
         `Rating for cocktail ID ${String(cocktailId)} by user ${userEmail} not found`,
       );
     }
-    if (!isOwner) {
+    if (!isOwner && user.role !== "ADMIN" && user.role !== "MODERATOR") {
       throw new UnauthorizedException(
         `You are not authorized to update this rating.`,
       );
@@ -97,7 +106,9 @@ export class RatingsService {
   }
 
   async remove(cocktailId: number, userEmail: string, user: any) {
-    const rating = this.findOne(cocktailId, userEmail);
+    const rating = await this.prisma.rating.findFirst({
+      where: { cocktailId: Number(cocktailId), userEmail },
+    });
     const isOwner = user.email === userEmail;
 
     if (rating === null || rating === undefined) {
