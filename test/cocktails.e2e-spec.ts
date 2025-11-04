@@ -38,7 +38,7 @@ describe("CocktailsController (e2e)", () => {
       .expect(200);
 
     token = loginRes.body.access_token;
-  }, 9999); // extend timeout for slower setup
+  }, 9999);
 
   afterAll(async () => {
     await app.close();

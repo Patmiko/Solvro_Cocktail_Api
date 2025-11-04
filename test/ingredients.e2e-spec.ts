@@ -54,7 +54,7 @@ describe("IngredientsController (e2e)", () => {
         .attach("image", testImage)
         .field("name", "Vodkatest")
         .field("type", "Juice")
-        .field("alcoholic", "true")
+        .field("alcoholic", true)
         .expect(201);
 
       ingredientId = res.body.id;

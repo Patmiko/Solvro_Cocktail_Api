@@ -2,7 +2,11 @@ import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateIngredientDto } from "./dto/create-ingredient.dto";
@@ -21,8 +25,13 @@ export class IngredientsService {
       alcoholic === "true" ||
       alcoholic === "1" ||
       alcoholic === 1;
+
+    if (!image || !image.buffer) {
+      throw new NotFoundException("Image file is required");
+    }
+
     let imageUrl: string;
-    if (image === undefined) {
+    if (image === null) {
       throw new NotFoundException("Image file is required");
     } else {
       const mediaDirection = path.join(process.cwd(), "media", "ingredients");
@@ -108,7 +117,7 @@ export class IngredientsService {
         }
       }
 
-      const newFileName = `ingredient_${id}_${Date.now()}.jpg`;
+      const newFileName = `ingredient_${id}_${Date.now()}.png`;
       newFilePath = path.join("media", "ingredients", newFileName);
       const absoluteNewFilePath = path.join(process.cwd(), newFilePath);
 
