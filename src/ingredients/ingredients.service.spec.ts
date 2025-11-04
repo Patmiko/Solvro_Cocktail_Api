@@ -87,7 +87,7 @@ describe("IngredientsService", () => {
       expect(prismaMock.ingredients.create).toHaveBeenCalledWith({
         data: {
           name: "Test Ingredient",
-          alcoholic: true,
+          alcoholic: "true",
           typeName: "type",
           percentage: 40,
           imageUrl: expect.stringContaining(".png"),

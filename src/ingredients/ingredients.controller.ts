@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 import {
   Body,
   Controller,
@@ -45,6 +46,8 @@ export class IngredientsController {
     @Body() createIngredientDto: CreateIngredientDto,
     @UploadedFile() image: Express.Multer.File,
   ) {
+    // Temporary
+    createIngredientDto.alcoholic = Boolean(createIngredientDto.alcoholic);
     return await this.ingredientsService.create(createIngredientDto, image);
   }
 

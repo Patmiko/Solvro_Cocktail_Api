@@ -2,11 +2,7 @@ import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateIngredientDto } from "./dto/create-ingredient.dto";
@@ -20,11 +16,6 @@ export class IngredientsService {
     image: Express.Multer.File,
   ) {
     const { name, alcoholic, typeName, percentage } = createIngredientDto;
-    const isAlcoholic =
-      alcoholic === true ||
-      alcoholic === "true" ||
-      alcoholic === "1" ||
-      alcoholic === 1;
 
     if (!image || !image.buffer) {
       throw new NotFoundException("Image file is required");
@@ -43,7 +34,7 @@ export class IngredientsService {
     const ingredient = await this.prisma.ingredients.create({
       data: {
         name,
-        alcoholic: isAlcoholic,
+        alcoholic,
         typeName,
         percentage,
         imageUrl,

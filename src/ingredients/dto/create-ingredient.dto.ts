@@ -22,7 +22,7 @@ export class CreateIngredientDto {
   @IsNotEmpty()
   @IsBoolean()
   @Type(() => Boolean)
-  @Transform(({ value }) => value === "true" || value === "1" || value === true)
+  @Transform(({ value }) => value === "true" || value === true)
   @ApiProperty({
     description: "Whether the ingredient is alcoholic.",
     example: false,
