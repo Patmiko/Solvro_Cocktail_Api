@@ -5,10 +5,10 @@
 <ul>
 <li> Dto i pozbycię się błędów związanych z typami (ogólnie błedy z Linta, chociaż funkcjonalność działa to oczywiście powinny zostać naprawione)
 <li> Dodanie walidatorów
-<li> Dokończenie testów (jednostkowe). auth e2e test się nie udaję przez wysyłanie maili :/
+<li> auth e2e test się nie udaję przez wysyłanie maili :/
 </ul>
 <p>
-Generalnie jestem raczej świadomy co jest tutaj do poprawy ale przez problemy z rekrutacją i wynikający z tego krótki termin oddania zadania pozostaje ono w stanie w którym jest. Also ignorowane Open Handle w testach wynikają z używania serwisu do Maila który nie chciał się zmockować z jakiegoś powodu (też do naprawy).
+Generalnie jestem raczej świadomy co jest tutaj do poprawy ale przez problemy z rekrutacją i wynikający z tego krótki termin oddania zadania pozostaje ono w stanie w którym jest. Also ignorowane Open Handle w testach wynikają z używania serwisu do Maila który nie chciał się zmockować z jakiegoś powodu (też do naprawy). Ogólnie to największym problemem jest lint i chociaż byłbym w stanie to zrobić to aktualnie czasowo jest to raczej nie możliwe. 
 </p>
 <a href="https://github.com/MrChazar/minecraft-pixel-art-generator">Projekt Generator Frajdy z wakacyjnego wyzwania Solvro:</a>
 
@@ -36,4 +36,10 @@ Dane logowania:
 MAIL_USER=
 MAIL_PASS=
 
+</p>
+
+---
+
+<p>
+Tak generalnie to dzięki za możliwość wzięcia udziału w rekrutacji i organizację wakacyjnego wyzwania. Miłego dnia/nocy whenever to czytasz
 </p>
